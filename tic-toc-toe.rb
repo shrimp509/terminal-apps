@@ -15,9 +15,7 @@
 5. 玩家輸入
 
 待完成：
-1. 輸入防呆: 避免重複輸入、避免輸出錯誤格式
-2. 平手判斷
-3. 重構
+1. 重構
 =end
 
 WIN_PATTERN = [
@@ -25,6 +23,8 @@ WIN_PATTERN = [
   [1,5,9], [3,5,7], # 斜
   [1,4,7], [2,5,8], [3,6,9] # 豎
 ].freeze
+
+LEGAL_INPUTS = (1..9).to_a.freeze
 
 PLAYERS = [:O, :X].freeze
 
@@ -58,15 +58,23 @@ def reverse_game_data_format
 end
 
 def show_and_update_game_data_from_input
-  print("Hi #{@current_player.to_s}, where do you want to put: ")
+  print("輪到 #{@current_player} 了, 你想下哪兒 [只能輸入 1 - 9]: ")
   number = gets
+  print("\n")
+  while !LEGAL_INPUTS.include?(number.to_i)
+    print(CLEAR_LINE * 2)
+    puts("[錯誤訊息] 錯誤的輸入值，你只能輸入 1 - 9！")
+    print("輪到 #{@current_player} 了, 你想下哪兒 [只能輸入 1 - 9]: ")
+    number = gets
+  end
   @game_data[@current_player].append(number.to_i)
 end
 
 def judge
   for pattern in WIN_PATTERN
-    return "#{@current_player.to_s} WIN!" if (@game_data[@current_player] & pattern).sort == pattern
+    return "#{@current_player.to_s} 獲勝!" if (@game_data[@current_player] & pattern).sort == pattern
   end
+  return '平手' if @game_data.values.flatten.count == 9
   return nil
 end
 
@@ -93,4 +101,4 @@ end
 
 # GAME OVER
 print_game
-puts("Game Over: #{winner_msg}")
+puts("遊戲結束: #{winner_msg}")
