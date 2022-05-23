@@ -16,6 +16,9 @@
 
 待完成：
 1. 重構
+2. 檢查重複輸入
+3. 重新檢查遊戲結束條件:
+  - 原本用數量9判斷改成用1-9的值是否都被填滿來判斷
 =end
 
 WIN_PATTERN = [
@@ -30,18 +33,33 @@ PLAYERS = [:O, :X].freeze
 
 CLEAR_LINE = "\x1b[1A\x1b[2K".freeze
 
+INPUT_GUIDELINE = "輪到 %s 了, 你想下哪兒 [只能輸入 1 - 9]: ".freeze
+ERROR_INPUT = "[錯誤訊息] 錯誤的輸入值，你只能輸入 1 - 9！".freeze
+WINNER_MSG = "%s 獲勝!".freeze
+START_MSG = "開始玩「圈圈叉叉」囉～".freeze
+GAME_BOARD = "
+  %s|%s|%s
+  -----
+  %s|%s|%s
+  -----
+  %s|%s|%s
+\n".freeze
+
+def game_initialization
+  @game = true
+  @current_player = PLAYERS.first
+  @game_data = {O: [], X: []}
+  puts(START_MSG)
+end
+
 def print_game
   reverse_game_data_format
 
   print(CLEAR_LINE * 100)
 
-  print("
-    #{get_cell_value(1)}|#{get_cell_value(2)}|#{get_cell_value(3)}
-    -----
-    #{get_cell_value(4)}|#{get_cell_value(5)}|#{get_cell_value(6)}
-    -----
-    #{get_cell_value(7)}|#{get_cell_value(8)}|#{get_cell_value(9)}
-  \n")
+  print(GAME_BOARD % get_cell_value(1), get_cell_value(2), get_cell_value(3),
+                     get_cell_value(4), get_cell_value(5), get_cell_value(6),
+                     get_cell_value(7), get_cell_value(8), get_cell_value(9))
 end
 
 def get_cell_value(count)
@@ -58,47 +76,51 @@ def reverse_game_data_format
 end
 
 def show_and_update_game_data_from_input
-  print("輪到 #{@current_player} 了, 你想下哪兒 [只能輸入 1 - 9]: ")
+  print(INPUT_GUIDELINE % @current_player)
   number = gets
   print("\n")
   while !LEGAL_INPUTS.include?(number.to_i)
     print(CLEAR_LINE * 2)
-    puts("[錯誤訊息] 錯誤的輸入值，你只能輸入 1 - 9！")
-    print("輪到 #{@current_player} 了, 你想下哪兒 [只能輸入 1 - 9]: ")
+    puts(ERROR_INPUT)
+    print(INPUT_GUIDELINE % @current_player)
     number = gets
   end
   @game_data[@current_player].append(number.to_i)
 end
 
 def judge
+  # judge winner
   for pattern in WIN_PATTERN
-    return "#{@current_player.to_s} 獲勝!" if (@game_data[@current_player] & pattern).sort == pattern
+    win = (@game_data[@current_player] & pattern).sort == pattern
+    over_msg = (WINNER_MSG % @current_player.to_s) if win
   end
-  return '平手' if @game_data.values.flatten.count == 9
-  return nil
+
+  # judge full game
+  full_game = @game_data.values.flatten.count == 9
+  over_msg = '平手' if full_game
+
+  # break game loop if over
+  @game = false unless over_msg.nil?
+
+  return over_msg
 end
 
 def next_player
   @current_player = (PLAYERS - [@current_player]).last
 end
 
-# GAME START
-puts("開始玩「圈圈叉叉」囉～")
-
-# Game Initialization
-game = true
-@current_player = PLAYERS.first
-@game_data = {O: [], X: []}
+# --- GAME START ---
 
 # Main Logic
-while game do
+game_initialization
+
+while @game do
   print_game
   show_and_update_game_data_from_input
-  winner_msg = judge
-  game = false if !(winner_msg.nil?)
+  over_msg = judge
   next_player
 end
 
 # GAME OVER
 print_game
-puts("遊戲結束: #{winner_msg}")
+puts("遊戲結束: #{over_msg}")
