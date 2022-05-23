@@ -16,8 +16,7 @@
 
 待完成：
 1. 重構
-3. 重新檢查遊戲結束條件:
-  - 原本用數量9判斷改成用1-9的值是否都被填滿來判斷
+2. 加上顏色
 =end
 
 WIN_PATTERN = [
@@ -126,7 +125,7 @@ def judge
   end
 
   # judge full game
-  full_game = @game_data.values.flatten.count == 9
+  full_game = @game_data.values.flatten.uniq.sort == LEGAL_INPUTS
   over_msg = '平手' if full_game
 
   # break game loop if over
