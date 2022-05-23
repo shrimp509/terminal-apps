@@ -16,7 +16,6 @@
 
 待完成：
 1. 重構
-2. 檢查重複輸入
 3. 重新檢查遊戲結束條件:
   - 原本用數量9判斷改成用1-9的值是否都被填滿來判斷
 =end
@@ -35,6 +34,7 @@ CLEAR_LINE = "\x1b[1A\x1b[2K".freeze
 
 INPUT_GUIDELINE = "輪到 %s 了, 你想下哪兒 [只能輸入 1 - 9]: ".freeze
 ERROR_INPUT = "[錯誤訊息] 錯誤的輸入值，你只能輸入 1 - 9！".freeze
+ERROR_DUPLICATE_INPUT = "[錯誤訊息] 想蓋掉別人的地盤？換個地方填吧".freeze
 WINNER_MSG = "%s 獲勝!".freeze
 START_MSG = "開始玩「圈圈叉叉」囉～".freeze
 GAME_BOARD = "
@@ -53,39 +53,69 @@ def game_initialization
 end
 
 def print_game
-  reverse_game_data_format
+  new_game_data = reverse_game_data_format(@game_data)
 
   print(CLEAR_LINE * 100)
 
-  print(GAME_BOARD % get_cell_value(1), get_cell_value(2), get_cell_value(3),
-                     get_cell_value(4), get_cell_value(5), get_cell_value(6),
-                     get_cell_value(7), get_cell_value(8), get_cell_value(9))
+  print(
+    GAME_BOARD % [get_cell_value(1), get_cell_value(2), get_cell_value(3),
+                 get_cell_value(4), get_cell_value(5), get_cell_value(6),
+                 get_cell_value(7), get_cell_value(8), get_cell_value(9)]
+  )
+
+  print("\n")
 end
 
 def get_cell_value(count)
   @new_game_data[count.to_s] || count.to_s
 end
 
-def reverse_game_data_format
-  @new_game_data = {}
+def reverse_game_data_format(game_data)
+  new_game_data = {}
   @game_data.invert.each do |values, k|
     values.each do |value|
-      @new_game_data[value.to_s] = k
+      new_game_data[value.to_s] = k
     end
   end
+  @new_game_data = new_game_data
+  return new_game_data
 end
 
 def show_and_update_game_data_from_input
-  print(INPUT_GUIDELINE % @current_player)
-  number = gets
-  print("\n")
-  while !LEGAL_INPUTS.include?(number.to_i)
-    print(CLEAR_LINE * 2)
-    puts(ERROR_INPUT)
-    print(INPUT_GUIDELINE % @current_player)
-    number = gets
+  input_continue = true
+
+  while input_continue
+    print_game
+    print_err_msg
+    number = get_user_input
+
+    if !LEGAL_INPUTS.include?(number.to_i)
+      @err_msg = ERROR_INPUT
+      next
+    end
+
+    if reverse_game_data_format(@game_data)[number]
+      @err_msg = ERROR_DUPLICATE_INPUT
+      next
+    end
+
+    input_continue = false
   end
+
   @game_data[@current_player].append(number.to_i)
+end
+
+def get_user_input
+  print(INPUT_GUIDELINE % @current_player)
+  input = gets.strip
+  return input
+end
+
+def print_err_msg
+  unless @err_msg.nil?
+    puts(@err_msg)
+    @err_msg = nil
+  end
 end
 
 def judge
