@@ -40,7 +40,7 @@ def start_game():
         print(hint)
 
         if check_game_over(hint):
-            puts("Congratulation!")
+            print("Congratulation!")
             break
 
 
