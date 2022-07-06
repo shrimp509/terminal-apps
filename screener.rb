@@ -53,6 +53,31 @@ class Screener
       print(msg)
     end
 
+    def lottery(array)
+      print('中獎的是：'.bold.red)
+      idx = 0
+      sleep_time = 0.03
+      threshold = 0.3 + Random.rand(0.1)
+      while true do
+        # print
+        msg = array[idx % array.length]
+        print(msg)
+
+        # wait
+        sleep_time += (1.0001 ** (idx * 2) - 1)
+        sleep_time > threshold ? break : sleep(sleep_time)
+
+        # clear
+        msg_length = cal_word_length(msg)
+        move_cursor_horizontal(-msg_length)
+        print(' ' * msg_length)
+        move_cursor_horizontal(-msg_length)
+
+        # next
+        idx += 1
+      end
+    end
+
     # private
 
     def clear_screen
@@ -112,17 +137,10 @@ class Screener
   end
 end
 
-
-Screener.clear_screen
-Screener.print_header('山姆老弟，我最希換')
+Screener.lottery(['山姆老弟，我最希換', 'Hello World', '帥哥你好'])
 
 # Screener.print_to_center("HEllo WORLD".red)
 # sleep(1)
 # Screener.print_to_center("山姆怎麼那麼帥".red)
 # sleep(1)
 # Screener.print_to_center("Hello 山姆超帥的喲喲喲喲喲喲喲喲喲喲 Sam World".red)
-
-
-
-while true
-end
