@@ -6,7 +6,13 @@ A simple command line tool for turning image to ascii text.
 
 ![](https://github.com/shrimp509/terminal-games/blob/main/screenshots/textify-example.png)
 
+### Prerequire
+
+Install [imagemagick](https://imagemagick.org/index.php) please before you using this tool.
+
+* For mac: `$ brew install pkg-config imagemagick`
+
 ### Usage
 
 1. Start textify with an example image as input: `$ ruby textify.rb examples/cat.jpeg`
-2. Check the result at terminal
+2. Check the text output at terminal.
