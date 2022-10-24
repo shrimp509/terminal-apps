@@ -1,9 +1,6 @@
 CSI = "\e[".freeze
 HEADER_HEIGHT = 7
 
-require './colorful'
-require 'pry'
-
 class Screener
   class << self
     def print_to_center(msg, clear: true)
@@ -54,7 +51,7 @@ class Screener
     end
 
     def lottery(array)
-      print('中獎的是：'.bold.red)
+      print('中獎的是：')
       idx = 0
       sleep_time = 0.03
       threshold = 0.3 + Random.rand(0.1)
@@ -77,8 +74,6 @@ class Screener
         idx += 1
       end
     end
-
-    # private
 
     def clear_screen
       print("#{CSI}2J")
@@ -136,11 +131,3 @@ class Screener
     end
   end
 end
-
-Screener.lottery(['山姆老弟，我最希換', 'Hello World', '帥哥你好'])
-
-# Screener.print_to_center("HEllo WORLD".red)
-# sleep(1)
-# Screener.print_to_center("山姆怎麼那麼帥".red)
-# sleep(1)
-# Screener.print_to_center("Hello 山姆超帥的喲喲喲喲喲喲喲喲喲喲 Sam World".red)
