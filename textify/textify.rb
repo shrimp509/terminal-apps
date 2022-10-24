@@ -9,15 +9,9 @@ class Textify
     @img = ImageList.new(img_path).last
     @brightness_map = calc_chars_brightness
     @terminal_width = `tput cols`.strip.to_i
-    @cache_file = './cache'
   end
 
   def start
-    # Remove background
-    # @img.write(@cache_file)
-    # remove_background(@cache_file, @cache_file)
-    # preprocessed_img = ImageList.new(@cache_file).last
-
     # Shrink img to terminal width
     shrink_times = (@img.columns.to_f / @terminal_width).ceil
     preprocessed_img = @img.resize(@img.columns / shrink_times, @img.rows / shrink_times / 2)
@@ -45,8 +39,6 @@ class Textify
     end
 
     puts result
-  ensure
-    clean_cache
   end
 
   private
@@ -105,14 +97,6 @@ class Textify
       new_value = 255 * (v - brightness_map.values.min) / (brightness_map.values.max - brightness_map.values.min)
       { k => new_value }
     end.reduce {|a, b| a.merge(b)}
-  end
-
-  def remove_background(input_path, output_path)
-    `convert #{input_path} -alpha off -fuzz 10% -fill none -draw "alpha 10,10 floodfill" \\( +clone -alpha extract -blur 0x2 -level 50x100% \\) -alpha off -compose copy_opacity -composite #{output_path}`
-  end
-
-  def clean_cache
-    `rm -rf #{@cache_file}`
   end
 end
 
