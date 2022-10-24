@@ -20,3 +20,11 @@ A simple command line tool for turning image to ascii text.
 
 1. Start textify with an example image as input: `$ ruby textify.rb examples/cat.jpeg`
 2. Check the text output at terminal.
+
+### Options
+
+1. `--with-color`: output with terminal colors
+
+    e.g. `$ ruby textify.rb examples/cat.jpeg --with-color`
+
+    ![](https://github.com/shrimp509/terminal-games/blob/main/screenshots/textify-with-color-example.png)

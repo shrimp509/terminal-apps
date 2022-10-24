@@ -1,14 +1,25 @@
 require 'rmagick'
+require 'colorize'
 include Magick
 
 class Textify
-
   ALLOW_CHARS = '~!@#$%^&*()_+{}:">?`1234567890-=[];\',.'.chars.append(('a'..'z').to_a).append(('A'..'Z').to_a).flatten
+  COLORS = { 
+    black:   '#000000', light_black:   '#686868',
+    red:     '#C91C00', light_red:     '#FF6E67',
+    green:   '#00C200', light_green:   '#5FF867',
+    yellow:  '#C7C400', light_yellow:  '#FFFC67',
+    blue:    '#0225C7', light_blue:    '#6871FF',
+    magenta: '#C02EBE', light_magenta: '#FF77FF',
+    cyan:    '#00C5C7', light_cyan:    '#60FDFF',
+    white:   '#C7C7C7', light_white:   '#FFFFFF'
+  }
 
-  def initialize(img_path)
+  def initialize(img_path, color=false)
     @img = ImageList.new(img_path).last
     @brightness_map = calc_chars_brightness
     @terminal_width = `tput cols`.strip.to_i
+    @color = color == '--with-color' ? true : false
   end
 
   def start
@@ -21,21 +32,17 @@ class Textify
     preprocessed_img.each_pixel do |pixel, column, row|
       brightness_array.append(brightness(pixel))
     end
-    
-    # Normalize brightness
-    normalized_brightness = []
-    preprocessed_img.each_pixel do |pixel, column, row|
-      normalized_brightness.append(
-        normalize(brightness(pixel), brightness_array.max, brightness_array.min)
-      )
-    end
 
     result = ''
-    counter = 0
-    normalized_brightness.map do |pixel_brightness|
-      result += "\n" if counter % preprocessed_img.columns == 0
-      result += find_best_char(pixel_brightness)
-      counter += 1
+    preprocessed_img.each_pixel do |pixel, column, row|
+      result += "\n" if column == 0
+      brightness = normalize(brightness(pixel), brightness_array.max, brightness_array.min)
+      char = find_best_char(brightness)
+      if @color
+        result += append_best_colorcode(char, rgb_color(pixel))
+      else
+        result += char
+      end
     end
 
     puts result
@@ -65,6 +72,28 @@ class Textify
       { k => (v - brightness).abs }
     end.reduce {|a,b| a.merge(b)}
     diff_map.key(diff_map.values.min)
+  end
+
+  def append_best_colorcode(char, color)
+    char.colorize(find_best_colorcode(color))
+  end
+
+  def find_best_colorcode(target_color)
+    COLORS.map do |color, code|
+      { color => color_difference(target_color, hex_to_rgb(code)) }
+    end.min_by {|hash| hash.values.last}.keys.last
+  end
+
+  def rgb_color(pixel)
+    [pixel.red / 257, pixel.green / 257, pixel.blue / 257]
+  end
+
+  def color_difference(color1, color2)
+    Math.sqrt((color1[0] - color2[0])**2 + (color1[1] - color2[1])**2 + (color1[2] - color2[2])**2)
+  end
+
+  def hex_to_rgb(hex)
+    hex.match(/^#(..)(..)(..)$/).captures.map(&:hex)
   end
   
   def calc_chars_brightness
@@ -101,4 +130,5 @@ class Textify
 end
 
 image_path = ARGV[0]
-puts(Textify.new(image_path).start)
+color = ARGV[1] || false
+puts(Textify.new(image_path, color).start)
