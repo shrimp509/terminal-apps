@@ -1,6 +1,6 @@
 # Textify
 
-A simple command line tool for turning image to ascii text.
+A simple command line tool for turning image to ascii text based on `ImageMagick`.
 
 ### Screenshot
 
